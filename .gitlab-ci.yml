@@ -59,26 +59,26 @@ apply:
   stage: deploy
   tags:
     - iac
-  environment:
-    name: production
+#  environment:
+#    name: production
   script:
     - gitlab-terraform apply
   dependencies:
     - plan
   when: manual
   only:
-    - main
+    - master
 
 destroy:
   stage: cleanup
   tags:
     - iac
-  environment:
-    name: production
+#  environment:
+#    name: production
   script:
     - gitlab-terraform destroy
   dependencies:
     - apply
   when: manual
   only:
-    - main
+    - master
