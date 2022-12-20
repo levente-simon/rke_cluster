@@ -1,0 +1,84 @@
+# image:
+#  name: registry.gitlab.com/i3808/gl-runner-tf:1.0
+
+variables:
+  TF_ROOT: ${CI_PROJECT_DIR}
+  TF_ADDRESS: ${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/terraform/state/production
+  TF_HTTP_RETRY_MAX: 15
+  TF_HTTP_RETRY_WAIT_MIN: 5
+  VAULT_ADDR: $VAULT_ADDR
+  VAULT_ROLE: $VAULT_ROLE
+  TF_VAR_vault_config_path: $VAULT_INFRACFG_PATH
+  TF_VAR_vault_k8s_config_path: $VAULT_K8SMGCFG_PATH
+
+cache:
+  key: production
+  paths:
+    - ${TF_ROOT}/.terraform
+
+before_script:
+  - export VAULT_TOKEN="$(vault write -field=token auth/jwt_gitlab/login role=$VAULT_ROLE jwt=$CI_JOB_JWT)"
+  - cd ${TF_ROOT}
+
+stages:
+  - prepare
+  - validate
+  - build
+  - deploy
+  - cleanup
+
+init:
+  stage: prepare
+  tags:
+    - iac
+  script:
+    - gitlab-terraform init
+
+validate:
+  stage: validate
+  tags:
+    - iac
+  script:
+    - gitlab-terraform validate
+
+plan:
+  stage: build
+  tags:
+    - iac
+  script:
+    - gitlab-terraform plan
+    - gitlab-terraform plan-json
+  artifacts:
+    name: plan
+    paths:
+      - ${TF_ROOT}/plan.cache
+    reports:
+      terraform: ${TF_ROOT}/plan.json
+
+apply:
+  stage: deploy
+  tags:
+    - iac
+  environment:
+    name: production
+  script:
+    - gitlab-terraform apply
+  dependencies:
+    - plan
+  when: manual
+  only:
+    - main
+
+destroy:
+  stage: cleanup
+  tags:
+    - iac
+  environment:
+    name: production
+  script:
+    - gitlab-terraform destroy
+  dependencies:
+    - apply
+  when: manual
+  only:
+    - main
