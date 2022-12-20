@@ -37,7 +37,7 @@ module "rke" {
   module_depends_on      = [ time_sleep.wait_90_seconds ]
 
   os_user                = data.vault_generic_secret.config.data["os_user"]
-  k8s_config_path        = "${path.root}/${var.k8s_config_path}"
+  k8s_config_path        = "/dev/null"
   ssh_private_key        = module.infra.ssh_private_key
   cluster_hosts          = local.cluster_hosts
 }
@@ -46,7 +46,7 @@ resource "vault_generic_secret" "k8s_config" {
   path = "${var.vault_k8s_config_path}"
   data_json = <<-EOT
     {
-      "ssh_private_key": "${module.infra.ssh_private_key}"
+      "ssh_private_key": "${base64encode(module.infra.ssh_private_key)}",
       "cluster_ca_crt": "${base64encode(module.rke.cluster_ca_crt)}",
       "cluster_client_cert": "${base64encode(module.rke.cluster_client_cert)}",
       "cluster_client_key": "${base64encode(module.rke.cluster_client_key)}",
