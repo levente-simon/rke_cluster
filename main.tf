@@ -52,7 +52,7 @@ resource "vault_generic_secret" "k8s_config" {
       "cluster_client_key": "${base64encode(module.rke.cluster_client_key)}",
       "cluster_kube_admin_user": "${module.rke.cluster_kube_admin_user}",
       "cluster_kube_api_server_url": "${module.rke.cluster_kube_api_server_url}",
-      "cluster_kubeconfig": ${base64encode(module.rke.cluster_kubeconfig)}
+      "cluster_kubeconfig": "${base64encode(module.rke.cluster_kubeconfig)}"
     }
     EOT
 }
