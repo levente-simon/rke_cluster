@@ -37,7 +37,6 @@ module "rke" {
   module_depends_on      = [ time_sleep.wait_90_seconds ]
 
   os_user                = data.vault_generic_secret.config.data["os_user"]
-  k8s_config_path        = "/dev/null"
   ssh_private_key        = module.infra.ssh_private_key
   cluster_hosts          = local.cluster_hosts
 }
